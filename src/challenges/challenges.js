@@ -135,6 +135,11 @@ export const challenges = [
     lockedFiles: [],
     hint:
       'The handler performs multiple updates in the same tick. Explain why the second update sees an outdated value.',
+    seniorInsight: 'A senior developer avoids relying on closure state when multiple updates are batched. Functional updates ensure each step works with the latest value.',
+    seniorSolution: `  const handleQuickAdd = () => {
+    setCount(prev => prev + 1);
+    setCount(prev => prev + 1);
+  };`
   },
   {
     id: 'infinite-loop',
@@ -168,6 +173,14 @@ export const challenges = [
     lockedFiles: ['api.js'],
     hint:
       'The effect depends on the same state it updates. Explain the feedback loop rather than the fix.',
+    seniorInsight: 'Correct dependency management is the difference between a stable app and a crash. Effects should only run when their external dependencies change, not as a reaction to their own results.',
+    seniorSolution: `  useEffect(() => {
+    setStatus('loading');
+    fetchUser().then((data) => {
+      setUser(data);
+      setStatus('ready');
+    });
+  }, []);`
   },
   {
     id: 'memory-leak',
@@ -196,5 +209,12 @@ export const challenges = [
     lockedFiles: [],
     hint:
       'Intervals survive unmounts unless you tear them down. Explain what lifecycle step is missing.',
+    seniorInsight: 'Shipping ability means shipping clean memory. A senior engineer always considers the cleanup phase of any side effect to prevent resource exhaustion.',
+    seniorSolution: `  useEffect(() => {
+    const id = setInterval(() => {
+      setTick((value) => value + 1);
+    }, 400);
+    return () => clearInterval(id);
+  }, []);`
   },
 ];

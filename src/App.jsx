@@ -23,8 +23,17 @@ const formatDuration = (seconds) => {
   return `${minutes}:${String(remainder).padStart(2, '0')}`;
 };
 
-const calculateScore = (seconds, logs) => {
-  return Math.max(0, 1000 - seconds * 4 - logs * 20);
+const calculateScore = (seconds, logs, isSeniorMode) => {
+  const base = Math.max(0, 1000 - seconds * 4 - logs * 20);
+  return isSeniorMode ? Math.floor(base * (logs > 3 ? 0.5 : 1.2)) : base;
+};
+
+const getGrade = (score, isSeniorMode) => {
+  if (score >= 1000) return 'S';
+  if (score >= 850) return 'A';
+  if (score >= 700) return 'B';
+  if (score >= 500) return 'C';
+  return 'D';
 };
 
 const levelBadge = (level) => {
@@ -123,6 +132,8 @@ const App = () => {
   const [apiKey, setApiKey] = useState(() => {
     return localStorage.getItem('senioritytrap_api_key') ?? '';
   });
+  const [seniorMode, setSeniorMode] = useState(false);
+  const [showReport, setShowReport] = useState(false);
   const [hintState, setHintState] = useState({
     status: 'idle',
     message: 'Hints explain the bug, not the fix.',
@@ -209,8 +220,8 @@ const App = () => {
     if (!timerRunning) {
       return;
     }
-    setScore(calculateScore(elapsedSeconds, stats.logCount));
-  }, [timerRunning, elapsedSeconds, stats.logCount]);
+    setScore(calculateScore(elapsedSeconds, stats.logCount, seniorMode));
+  }, [timerRunning, elapsedSeconds, stats.logCount, seniorMode]);
 
   useEffect(() => {
     if (activeChallenge?.entry) {
@@ -262,7 +273,7 @@ const App = () => {
     setStartTime(Date.now());
     setElapsedSeconds(0);
     setTimerRunning(true);
-    setScore(calculateScore(0, 0));
+    setScore(calculateScore(0, 0, seniorMode));
     setTestResult({ status: 'running', message: 'Running tests...' });
     setStats({ logCount: 0, fetchCount: 0, intervalCount: 0 });
     setLogs([]);
@@ -352,7 +363,7 @@ const App = () => {
 
     if (event.type === 'test') {
       const duration = Math.max(0, Math.floor((Date.now() - startTime) / 1000));
-      const finalScore = calculateScore(duration, stats.logCount);
+      const finalScore = calculateScore(duration, stats.logCount, seniorMode);
       setElapsedSeconds(duration);
       setTimerRunning(false);
       setScore(finalScore);
@@ -386,6 +397,8 @@ const App = () => {
               [activeChallengeId]: true,
             },
           };
+          // Show seniority report on pass
+          setTimeout(() => setShowReport(true), 800);
         }
 
         return next;
@@ -484,11 +497,27 @@ const App = () => {
           </div>
 
           <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={() => setSeniorMode(!seniorMode)}
+              className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-colors ${
+                seniorMode
+                  ? 'bg-ink-900 text-white shadow-glow'
+                  : 'bg-black/[0.03] text-ink-400 hover:text-ink-600'
+              }`}
+            >
+              <Flame className={`h-3 w-3 ${seniorMode ? 'animate-pulse' : ''}`} />
+              Senior Mode
+            </button>
+            <div className="h-4 w-px bg-black/[0.06]" />
             <div className="flex items-center gap-2 rounded-lg bg-black/[0.03] px-3 py-1.5 text-xs font-semibold text-ink-600">
               <Timer className="h-3.5 w-3.5 text-ink-400" />
               <span className="font-mono">{formatDuration(elapsedSeconds)}</span>
             </div>
             <div className="flex items-center gap-2 rounded-lg bg-black/[0.03] px-3 py-1.5 text-xs font-semibold text-ink-600">
+              <div className="flex h-5 w-5 items-center justify-center rounded-md bg-white text-[10px] font-bold text-ink-900 shadow-sm">
+                {getGrade(score, seniorMode)}
+              </div>
               <Trophy className="h-3.5 w-3.5 text-ember-500" />
               <span>{score} pts</span>
             </div>
@@ -962,6 +991,68 @@ const App = () => {
           </section>
         ) : null}
       </main>
+      {showReport && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/60 p-4 backdrop-blur-sm animate-fade-in">
+          <div className="panel w-full max-w-lg overflow-hidden bg-white shadow-2xl animate-rise">
+            <div className="relative h-32 bg-ink-900 px-8 pt-8 text-white">
+              <div className="absolute right-6 top-6">
+                <button 
+                  onClick={() => setShowReport(false)}
+                  className="rounded-full bg-white/10 p-2 hover:bg-white/20 transition-colors"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                </button>
+              </div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">Seniority Analysis</p>
+              <h3 className="mt-2 text-2xl font-bold">Challenge Cleared</h3>
+            </div>
+            
+            <div className="p-8">
+              <div className="flex items-start gap-6">
+                <div className="flex h-20 w-20 flex-col items-center justify-center rounded-2xl bg-black/[0.03] ring-1 ring-black/[0.06]">
+                  <span className="text-3xl font-black text-ink-900">{getGrade(score, seniorMode)}</span>
+                  <span className="text-[10px] font-bold text-ink-400 uppercase">Grade</span>
+                </div>
+                <div className="flex-1 space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase text-ink-400">Time Taken</p>
+                      <p className="text-lg font-bold text-ink-900">{formatDuration(elapsedSeconds)}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase text-ink-400">Restraint (Logs)</p>
+                      <p className="text-lg font-bold text-ink-900">{stats.logCount} used</p>
+                    </div>
+                  </div>
+                  <div className="rounded-xl border border-black/[0.04] bg-black/[0.01] p-4">
+                    <div className="flex items-center gap-2 text-ink-900">
+                      <Sparkles className="h-4 w-4 text-ember-500" />
+                      <span className="text-xs font-bold uppercase tracking-tight">The Senior Insight</span>
+                    </div>
+                    <p className="mt-2 text-xs leading-relaxed text-ink-600">
+                      {activeChallenge?.seniorInsight}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 flex flex-col gap-3">
+                <button
+                  onClick={() => setShowReport(false)}
+                  className="w-full rounded-xl bg-ink-900 py-3 text-sm font-bold text-white transition-transform hover:scale-[1.01] active:scale-[0.99]"
+                >
+                  CONTINUE TRAINING
+                </button>
+                <div className="text-center">
+                  <p className="text-[10px] text-ink-400">
+                    Taste is subjective. Judgment is not. Keep squashing.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -563,6 +563,15 @@ const App = () => {
               </div>
             </div>
 
+            <div className="flex items-center justify-between px-2">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-ink-400">Your Statistics</span>
+              <button 
+                onClick={() => setProgress({ passes: {}, history: {} })}
+                className="text-[10px] font-bold text-ink-400 hover:text-ember-500 transition-colors uppercase"
+              >
+                Reset All
+              </button>
+            </div>
             <div className="grid gap-6 md:grid-cols-3">
               {[
                 { label: 'Solved', value: `${totalSolved}/${challenges.length}`, icon: CheckCircle2 },

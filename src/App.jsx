@@ -443,163 +443,134 @@ const App = () => {
   };
 
   return (
-    <div className="min-h-screen text-ink-900">
-      <header className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-6 px-6 pb-4 pt-8">
-        <div className="flex flex-wrap items-center gap-6">
-          <button
-            type="button"
-            onClick={() => setActiveView('home')}
-            className="flex items-center gap-3 text-ink-900"
-          >
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-ink-900 text-sand-50">
-              <Bug className="h-5 w-5" />
-            </div>
-            <div className="text-left">
-              <h1 className="text-2xl font-semibold tracking-tight">
-                SeniorityTrap
-              </h1>
-              <p className="text-sm text-ink-600">
-                Debug-first drills for signal, not noise.
-              </p>
-            </div>
-          </button>
-          <nav className="hidden items-center gap-2 text-sm font-medium text-ink-600 lg:flex">
-            {[
-              { id: 'home', label: 'Home' },
-              { id: 'problems', label: 'Problems' },
-              { id: 'sandbox', label: 'Sandbox' },
-              { id: 'submissions', label: 'Submissions' },
-            ].map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setActiveView(item.id)}
-                className={`rounded-full border px-3 py-1 transition ${
-                  activeView === item.id
-                    ? 'border-ink-900/30 bg-white text-ink-900'
-                    : 'border-sand-200 bg-white/70 text-ink-600'
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
-          </nav>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="pill flex items-center gap-2">
-            <Timer className="h-4 w-4" />
-            <span>{formatDuration(elapsedSeconds)}</span>
+    <div className="min-h-screen bg-[#fbfbfb] text-ink-900 selection:bg-ember-400/20">
+      <header className="sticky top-0 z-50 border-b border-black/[0.06] bg-white/80 backdrop-blur-md">
+        <div className="mx-auto flex h-14 max-w-[1600px] items-center justify-between px-4">
+          <div className="flex items-center gap-8">
+            <button
+              type="button"
+              onClick={() => setActiveView('home')}
+              className="flex items-center gap-2.5 transition-opacity hover:opacity-80"
+            >
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-ink-900 text-white shadow-sm">
+                <Bug className="h-4 w-4" />
+              </div>
+              <span className="text-lg font-bold tracking-tight text-ink-900">
+                DebugMaster
+              </span>
+            </button>
+
+            <nav className="hidden items-center gap-1 lg:flex">
+              {[
+                { id: 'home', label: 'Home' },
+                { id: 'problems', label: 'Problems' },
+                { id: 'sandbox', label: 'Sandbox' },
+                { id: 'submissions', label: 'Submissions' },
+              ].map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setActiveView(item.id)}
+                  className={`px-4 py-1 text-sm font-medium transition-colors ${
+                    activeView === item.id
+                      ? 'text-ink-900'
+                      : 'text-ink-500 hover:text-ink-700'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </nav>
           </div>
-          <div className="pill flex items-center gap-2">
-            <Trophy className="h-4 w-4" />
-            <span>Score {score}</span>
-          </div>
-          <div className="pill flex items-center gap-2">
-            <Flame className="h-4 w-4" />
-            <span>{stats.logCount} logs</span>
+
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 rounded-lg bg-black/[0.03] px-3 py-1.5 text-xs font-semibold text-ink-600">
+              <Timer className="h-3.5 w-3.5 text-ink-400" />
+              <span className="font-mono">{formatDuration(elapsedSeconds)}</span>
+            </div>
+            <div className="flex items-center gap-2 rounded-lg bg-black/[0.03] px-3 py-1.5 text-xs font-semibold text-ink-600">
+              <Trophy className="h-3.5 w-3.5 text-ember-500" />
+              <span>{score} pts</span>
+            </div>
+            <div className="h-4 w-px bg-black/[0.06]" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sand-200 text-ink-600">
+              <Sparkles className="h-4 w-4" />
+            </div>
           </div>
         </div>
       </header>
 
       <main className="mx-auto max-w-7xl px-6 pb-12 animate-rise">
         {activeView === 'home' ? (
-          <section className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
-            <div className="panel flex flex-col gap-6 p-8">
-              <div>
-                <p className="panel-title">Debug training</p>
-                <h2 className="mt-3 text-3xl font-semibold leading-tight">
-                  A LeetCode-style arena for professional debugging.
+          <section className="flex flex-col gap-8 py-8">
+            <div className="panel flex flex-col items-center justify-center gap-6 py-16 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-black/[0.03] text-ink-900 ring-1 ring-black/[0.06]">
+                <Bug className="h-6 w-6" />
+              </div>
+              <div className="max-w-2xl px-6">
+                <h2 className="text-4xl font-bold tracking-tight text-ink-900 lg:text-5xl">
+                  Level up your debugging instincts.
                 </h2>
-                <p className="mt-3 text-base text-ink-600">
-                  Practice fixing real-world React bugs under pressure. Every run
-                  scores your focus, restraint, and ability to ship the clean
-                  fix.
+                <p className="mt-4 text-base text-ink-500 lg:text-lg">
+                  Real-world bugs, high-pressure scenarios, and professional grading. 
+                  DebugMaster helps you ship faster with fewer logs.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() => setActiveView('problems')}
-                  className="rounded-full bg-ink-900 px-5 py-2 text-sm font-semibold text-sand-50 transition hover:bg-ink-800"
+                  className="rounded-lg bg-ink-900 px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98]"
                 >
-                  Explore problems
+                  Start Training
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveView('sandbox')}
-                  className="rounded-full border border-ink-900/20 bg-white px-5 py-2 text-sm font-semibold text-ink-900 transition hover:bg-sand-100"
+                  className="rounded-lg border border-black/10 bg-white px-6 py-2.5 text-sm font-bold text-ink-900 transition-colors hover:bg-black/[0.02]"
                 >
-                  Jump into sandbox
+                  Open Sandbox
                 </button>
               </div>
-              <div className="grid gap-4 sm:grid-cols-3">
-                <div className="rounded-2xl border border-sand-200 bg-white/70 p-4">
-                  <p className="text-xs uppercase text-ink-500">Solved</p>
-                  <p className="text-2xl font-semibold text-ink-900">
-                    {totalSolved}/{challenges.length}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-sand-200 bg-white/70 p-4">
-                  <p className="text-xs uppercase text-ink-500">Attempts</p>
-                  <p className="text-2xl font-semibold text-ink-900">
-                    {totalAttempts}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-sand-200 bg-white/70 p-4">
-                  <p className="text-xs uppercase text-ink-500">Best score</p>
-                  <p className="text-2xl font-semibold text-ink-900">
-                    {Math.max(0, ...Object.values(bestScores))}
-                  </p>
-                </div>
-              </div>
             </div>
-            <div className="panel flex flex-col gap-5 p-6">
-              <p className="panel-title">Why this works</p>
-              <div className="space-y-3 text-sm text-ink-700">
-                <div className="rounded-2xl border border-sand-200 bg-white/70 p-4">
-                  <p className="font-semibold text-ink-900">Signal over noise</p>
-                  <p className="mt-1 text-ink-600">
-                    Every puzzle is a focused debugging scenario with clear
-                    objectives.
-                  </p>
+
+            <div className="grid gap-6 md:grid-cols-3">
+              {[
+                { label: 'Solved', value: `${totalSolved}/${challenges.length}`, icon: CheckCircle2 },
+                { label: 'Attempts', value: totalAttempts, icon: Flame },
+                { label: 'Best Score', value: Math.max(0, ...Object.values(bestScores)), icon: Trophy },
+              ].map((stat, i) => (
+                <div key={i} className="panel flex items-center gap-4 p-6">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-black/[0.03] text-ink-600">
+                    <stat.icon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-ink-400">{stat.label}</p>
+                    <p className="text-xl font-bold text-ink-900">{stat.value}</p>
+                  </div>
                 </div>
-                <div className="rounded-2xl border border-sand-200 bg-white/70 p-4">
-                  <p className="font-semibold text-ink-900">Senior behavior</p>
-                  <p className="mt-1 text-ink-600">
-                    Scores reward restraint: fewer logs and faster fixes win.
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-sand-200 bg-white/70 p-4">
-                  <p className="font-semibold text-ink-900">Ship-ready</p>
-                  <p className="mt-1 text-ink-600">
-                    Runs entirely in the browser, deploys instantly on Vercel.
-                  </p>
-                </div>
-              </div>
+              ))}
             </div>
           </section>
         ) : null}
 
         {activeView === 'problems' ? (
-          <section className="panel p-6">
-            <div className="flex flex-wrap items-center justify-between gap-4">
+          <section className="flex flex-col gap-6">
+            <div className="flex items-center justify-between px-2">
               <div>
-                <p className="panel-title">Problemset</p>
-                <h2 className="mt-2 text-2xl font-semibold">Debug tracks</h2>
-                <p className="mt-2 text-sm text-ink-600">
-                  Curated bugs mapped to real debugging instincts.
-                </p>
+                <h2 className="text-xl font-bold text-ink-900">Problem Set</h2>
+                <p className="text-xs text-ink-500">Pick a bug and start squashing.</p>
               </div>
-              <div className="flex flex-wrap items-center gap-2 text-sm">
+              <div className="flex items-center gap-1">
                 {['All', 'Junior', 'Mid', 'Senior'].map((level) => (
                   <button
                     key={level}
                     type="button"
                     onClick={() => setLevelFilter(level)}
-                    className={`rounded-full border px-3 py-1 transition ${
+                    className={`rounded-md px-3 py-1.5 text-xs font-bold transition-colors ${
                       levelFilter === level
-                        ? 'border-ink-900/40 bg-white text-ink-900'
-                        : 'border-sand-200 bg-white/70 text-ink-600'
+                        ? 'bg-ink-900 text-white'
+                        : 'text-ink-500 hover:bg-black/5 hover:text-ink-700'
                     }`}
                   >
                     {level}
@@ -607,135 +578,132 @@ const App = () => {
                 ))}
               </div>
             </div>
-            <div className="mt-6 space-y-4">
-              {filteredChallenges.map((challenge) => {
-                const isComplete = progress?.passes?.[challenge.id];
-                const bestScore = bestScores[challenge.id] || 0;
 
-                return (
-                  <div
-                    key={challenge.id}
-                    className="rounded-2xl border border-sand-200 bg-white/70 p-5"
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-4">
-                      <div>
-                        <h3 className="text-lg font-semibold">
-                          {challenge.title}
-                        </h3>
-                        <p className="mt-1 text-sm text-ink-600">
-                          {challenge.description}
-                        </p>
-                        <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                          <span className="pill">
-                            {challenge.estimatedMinutes} min
+            <div className="panel overflow-hidden">
+              <div className="grid grid-cols-[1fr_120px_120px_100px] border-b border-black/[0.04] bg-black/[0.01] px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-ink-400">
+                <span>Title</span>
+                <span>Level</span>
+                <span>Score</span>
+                <span className="text-right">Action</span>
+              </div>
+              <div className="flex flex-col divide-y divide-black/[0.04]">
+                {filteredChallenges.map((challenge) => {
+                  const isComplete = progress?.passes?.[challenge.id];
+                  const bestScore = bestScores[challenge.id] || 0;
+
+                  return (
+                    <div
+                      key={challenge.id}
+                      className="group grid grid-cols-[1fr_120px_120px_100px] items-center px-6 py-4 transition-colors hover:bg-black/[0.01]"
+                    >
+                      <div className="flex flex-col gap-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-ink-900 group-hover:text-ink-800">
+                            {challenge.title}
                           </span>
-                          {(challenge.tags || []).map((tag) => (
-                            <span key={tag} className="pill">
-                              {tag}
-                            </span>
-                          ))}
+                          {isComplete && <CheckCircle2 className="h-3.5 w-3.5 text-sea-500" />}
                         </div>
+                        <p className="text-[11px] text-ink-500">{challenge.description}</p>
                       </div>
-                      <div className="flex flex-col items-end gap-2 text-xs text-ink-600">
-                        <span
-                          className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${levelBadge(
-                            challenge.level,
-                          )}`}
-                        >
+                      <div className="flex items-center">
+                        <span className={`rounded px-1.5 py-0.5 text-[9px] font-bold uppercase ${levelBadge(challenge.level)}`}>
                           {challenge.level}
                         </span>
-                        <span>
-                          {isComplete ? 'Cleared' : 'Not cleared'}
-                        </span>
-                        <span>Best score {bestScore}</span>
+                      </div>
+                      <div className="flex items-center">
+                        <span className="text-xs font-semibold text-ink-600">{bestScore} pts</span>
+                      </div>
+                      <div className="flex items-center justify-end">
                         <button
                           type="button"
                           onClick={() => handleOpenChallenge(challenge.id)}
-                          className="rounded-full bg-ink-900 px-4 py-1.5 text-xs font-semibold text-sand-50"
+                          className="rounded-md bg-black/5 px-3 py-1.5 text-[10px] font-bold text-ink-700 transition-colors hover:bg-ink-900 hover:text-white"
                         >
-                          Open
+                          SOLVE
                         </button>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </section>
         ) : null}
 
         {activeView === 'submissions' ? (
-          <section className="panel p-6">
-            <div className="flex flex-wrap items-center justify-between gap-4">
+          <section className="flex flex-col gap-6">
+            <div className="flex items-center justify-between px-2">
               <div>
-                <p className="panel-title">Submissions</p>
-                <h2 className="mt-2 text-2xl font-semibold">Run ledger</h2>
-                <p className="mt-2 text-sm text-ink-600">
-                  Track every run across the problem set.
-                </p>
+                <h2 className="text-xl font-bold text-ink-900">Submission Ledger</h2>
+                <p className="text-xs text-ink-500">History of all your debugging attempts.</p>
               </div>
               <button
                 type="button"
                 onClick={handleClearAllHistory}
-                className="rounded-full border border-sand-200 bg-white px-4 py-2 text-xs font-semibold text-ink-600"
+                className="rounded-md border border-black/10 px-3 py-1.5 text-[10px] font-bold text-ink-500 transition-colors hover:bg-black/5 hover:text-ink-700 uppercase"
               >
-                Clear all
+                Clear All
               </button>
             </div>
-            <div className="mt-6 space-y-4">
-              {allHistory.length === 0 ? (
-                <p className="text-sm text-ink-600">No runs recorded yet.</p>
-              ) : (
-                allHistory.map((entry, index) => (
-                  <div
-                    key={`submission-${index}`}
-                    className="rounded-2xl border border-sand-200 bg-white/70 p-5"
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-4">
-                      <div>
-                        <p className="text-xs uppercase text-ink-500">
-                          {entry.challengeTitle}
-                        </p>
-                        <p className="mt-1 text-base font-semibold text-ink-900">
-                          {entry.message}
-                        </p>
-                        <p className="mt-2 text-xs text-ink-500">
-                          {formatTimestamp(entry.timestamp)}
-                        </p>
+
+            <div className="panel overflow-hidden">
+              <div className="grid grid-cols-[1fr_120px_100px_100px_100px_140px] border-b border-black/[0.04] bg-black/[0.01] px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-ink-400">
+                <span>Problem</span>
+                <span>Status</span>
+                <span>Mode</span>
+                <span>Time</span>
+                <span>Score</span>
+                <span className="text-right">Timestamp</span>
+              </div>
+              <div className="flex flex-col divide-y divide-black/[0.04]">
+                {allHistory.length === 0 ? (
+                  <div className="px-6 py-12 text-center text-sm text-ink-400 italic">No runs recorded yet.</div>
+                ) : (
+                  allHistory.map((entry, index) => (
+                    <div
+                      key={`submission-${index}`}
+                      className="grid grid-cols-[1fr_120px_100px_100px_100px_140px] items-center px-6 py-3.5 transition-colors hover:bg-black/[0.01]"
+                    >
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-ink-900">{entry.challengeTitle}</span>
+                        <span className="text-[10px] text-ink-500 line-clamp-1">{entry.message}</span>
                       </div>
-                      <div className="flex flex-col items-end gap-2 text-xs text-ink-600">
-                        <span
-                          className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${levelBadge(
-                            entry.level,
-                          )}`}
-                        >
-                          {entry.level}
-                        </span>
-                        <span
-                          className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${resultBadge(
-                            entry.status,
-                          )}`}
-                        >
+                      <div>
+                        <span className={`rounded px-1.5 py-0.5 text-[9px] font-bold uppercase ${resultBadge(entry.status)}`}>
                           {entry.status}
                         </span>
-                        <span>{entry.mode}</span>
-                        <span>{entry.duration}s</span>
-                        <span>Score {entry.score}</span>
+                      </div>
+                      <div className="text-[11px] font-semibold text-ink-600 uppercase tracking-tighter">
+                        {entry.mode}
+                      </div>
+                      <div className="text-[11px] text-ink-500 font-mono">
+                        {entry.duration}s
+                      </div>
+                      <div className="text-[11px] font-bold text-ink-900">
+                        {entry.score}
+                      </div>
+                      <div className="text-right text-[10px] text-ink-400 font-medium">
+                        {formatTimestamp(entry.timestamp)}
                       </div>
                     </div>
-                  </div>
-                ))
-              )}
+                  ))
+                )}
+              </div>
             </div>
           </section>
         ) : null}
 
         {activeView === 'sandbox' ? (
-          <section className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)_360px]">
-            <aside className="panel flex flex-col gap-6 p-5">
-              <div>
-                <div className="panel-title">Challenges</div>
-                <div className="mt-4 flex flex-col gap-3">
+          <section className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
+            {/* Left Sidebar: Navigator */}
+            <aside className="flex w-full flex-col gap-4 lg:w-[300px] shrink-0">
+              <div className="panel flex flex-col overflow-hidden">
+                <div className="border-b border-black/[0.04] bg-black/[0.01] px-4 py-2">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-ink-500">
+                    Challenge Navigator
+                  </span>
+                </div>
+                <div className="flex h-[300px] flex-col gap-1 overflow-y-auto p-2">
                   {challenges.map((challenge) => {
                     const isActive = challenge.id === activeChallengeId;
                     const isComplete = progress?.passes?.[challenge.id];
@@ -745,36 +713,24 @@ const App = () => {
                         key={challenge.id}
                         type="button"
                         onClick={() => setActiveChallengeId(challenge.id)}
-                        className={`flex flex-col gap-2 rounded-2xl border p-4 text-left transition hover:border-ink-800/40 hover:bg-white ${
+                        className={`flex flex-col gap-1 rounded-lg px-3 py-2 text-left transition-colors ${
                           isActive
-                            ? 'border-ink-800/50 bg-white shadow-glow'
-                            : 'border-sand-200 bg-white/60'
+                            ? 'bg-black/5 ring-1 ring-black/5'
+                            : 'hover:bg-black/[0.02]'
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="text-base font-semibold">
+                          <span className={`text-sm font-semibold ${isActive ? 'text-ink-900' : 'text-ink-700'}`}>
                             {challenge.title}
                           </span>
-                          <span
-                            className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${levelBadge(
-                              challenge.level,
-                            )}`}
-                          >
+                          <span className={`text-[10px] font-bold ${isActive ? 'text-ink-600' : 'text-ink-400'}`}>
                             {challenge.level}
                           </span>
                         </div>
-                        <p className="text-xs text-ink-600">
-                          {challenge.description}
-                        </p>
-                        <div className="flex items-center justify-between text-[11px] text-ink-500">
-                          <span>{challenge.estimatedMinutes} min</span>
-                          {isComplete ? (
-                            <span className="flex items-center gap-1 text-sea-500">
-                              <CheckCircle2 className="h-3.5 w-3.5" />
-                              Cleared
-                            </span>
-                          ) : (
-                            <span className="text-ink-400">Not cleared</span>
+                        <div className="flex items-center justify-between text-[10px] text-ink-500">
+                          <span>{challenge.estimatedMinutes}m</span>
+                          {isComplete && (
+                            <CheckCircle2 className="h-3 w-3 text-sea-500" />
                           )}
                         </div>
                       </button>
@@ -783,80 +739,96 @@ const App = () => {
                 </div>
               </div>
 
-              <div>
-                <div className="panel-title">Files</div>
-                <div className="mt-3 flex flex-col gap-2">
+              <div className="panel flex flex-col overflow-hidden">
+                <div className="border-b border-black/[0.04] bg-black/[0.01] px-4 py-2">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-ink-500">
+                    File Explorer
+                  </span>
+                </div>
+                <div className="flex flex-col gap-1 p-2">
                   {Object.keys(activeFiles || {}).map((file) => {
                     const isLocked = activeChallenge?.lockedFiles?.includes(file);
+                    const isActive = file === activeFile;
                     return (
                       <button
                         key={file}
                         type="button"
                         onClick={() => setActiveFile(file)}
-                        className={`flex items-center justify-between rounded-xl border px-3 py-2 text-sm transition ${
-                          file === activeFile
-                            ? 'border-ink-800/40 bg-white text-ink-900'
-                            : 'border-sand-200 bg-white/60 text-ink-600'
+                        className={`flex items-center justify-between rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                          isActive
+                            ? 'bg-ink-900 text-white shadow-sm'
+                            : 'text-ink-600 hover:bg-black/[0.02]'
                         }`}
                       >
-                        <span>{file}</span>
-                        {isLocked ? (
-                          <Lock className="h-4 w-4 opacity-60" />
-                        ) : (
-                          <GitBranch className="h-4 w-4 opacity-60" />
-                        )}
+                        <div className="flex items-center gap-2">
+                          {isLocked ? (
+                            <Lock className="h-3 w-3 opacity-70" />
+                          ) : (
+                            <GitBranch className="h-3 w-3 opacity-70" />
+                          )}
+                          <span>{file}</span>
+                        </div>
                       </button>
                     );
                   })}
                 </div>
-                {activeChallenge?.lockedFiles?.length ? (
-                  <p className="mt-3 text-xs text-ink-500">
-                    <Lock className="mr-1 inline h-3 w-3" />
-                    Some files are locked to keep the focus tight.
-                  </p>
-                ) : null}
+              </div>
+
+              <div className="panel p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-ink-500">Recent Runs</span>
+                  <button onClick={handleClearHistory} className="text-[10px] font-bold text-ink-400 hover:text-ink-600 uppercase">Clear</button>
+                </div>
+                <div className="mt-3 space-y-2">
+                  {activeHistory.slice(0, 3).map((entry, i) => (
+                    <div key={i} className="flex flex-col gap-1 rounded-md border border-black/[0.03] p-2">
+                      <div className="flex items-center justify-between text-[9px] font-bold uppercase">
+                        <span className={entry.status === 'pass' ? 'text-sea-500' : 'text-ember-500'}>{entry.status}</span>
+                        <span className="text-ink-400">{entry.duration}s</span>
+                      </div>
+                      <p className="line-clamp-1 text-[11px] text-ink-600">{entry.message}</p>
+                    </div>
+                  ))}
+                  {activeHistory.length === 0 && <p className="text-center text-[10px] text-ink-400 py-4 italic">No history yet.</p>}
+                </div>
               </div>
             </aside>
 
-            <section className="panel flex h-[680px] flex-col overflow-hidden">
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-sand-200 px-4 py-3">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.24em] text-ink-600">
-                    Editor
-                  </p>
-                  <div className="flex items-center gap-2 text-sm font-semibold">
-                    <span>{activeFile}</span>
-                    {isReadOnly ? (
-                      <span className="rounded-full border border-ink-900/10 bg-sand-100 px-2 py-0.5 text-[10px] text-ink-600">
-                        Read-only
-                      </span>
-                    ) : null}
-                  </div>
+            {/* Middle: Editor */}
+            <section className="panel flex min-w-0 flex-1 flex-col overflow-hidden min-h-[700px]">
+              <div className="flex h-11 items-center justify-between border-b border-black/[0.04] bg-black/[0.01] px-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-bold text-ink-900">{activeFile}</span>
+                  {isReadOnly && (
+                    <span className="rounded-md bg-black/5 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-tighter text-ink-500">
+                      Read Only
+                    </span>
+                  )}
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => handleRun('run')}
-                    className="flex items-center gap-2 rounded-full bg-ink-900 px-4 py-2 text-sm font-semibold text-sand-50 transition hover:bg-ink-800"
+                    className="flex h-8 items-center gap-1.5 rounded-md bg-ink-900 px-3 text-[11px] font-bold text-white transition-opacity hover:opacity-90"
                   >
-                    <Play className="h-4 w-4" />
-                    Run
+                    <Play className="h-3 w-3 fill-current" />
+                    RUN
                   </button>
                   <button
                     type="button"
                     onClick={() => handleRun('submit')}
-                    className="flex items-center gap-2 rounded-full border border-ink-900/80 bg-white px-4 py-2 text-sm font-semibold text-ink-900 transition hover:bg-sand-100"
+                    className="flex h-8 items-center gap-1.5 rounded-md bg-sea-500 px-3 text-[11px] font-bold text-white transition-opacity hover:opacity-90"
                   >
-                    <CheckCircle2 className="h-4 w-4" />
-                    Submit
+                    <CheckCircle2 className="h-3 w-3" />
+                    SUBMIT
                   </button>
+                  <div className="h-4 w-px bg-black/[0.08]" />
                   <button
                     type="button"
                     onClick={handleReset}
-                    className="flex items-center gap-2 rounded-full border border-sand-200 bg-white px-3 py-2 text-sm text-ink-600 transition hover:border-ink-800/30"
+                    className="flex h-8 w-8 items-center justify-center rounded-md border border-black/10 bg-white text-ink-600 transition-colors hover:bg-black/[0.02]"
                   >
-                    <RotateCcw className="h-4 w-4" />
-                    Reset
+                    <RotateCcw className="h-3.5 w-3.5" />
                   </button>
                 </div>
               </div>
@@ -869,85 +841,58 @@ const App = () => {
               </div>
             </section>
 
-            <aside className="flex flex-col gap-4">
-              <div className="panel p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="panel-title">Problem</p>
-                    <h2 className="mt-1 text-lg font-semibold">
-                      {activeChallenge?.title}
-                    </h2>
-                    <p className="mt-2 text-sm text-ink-600">
-                      {activeChallenge?.description}
-                    </p>
-                  </div>
-                  <span
-                    className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${levelBadge(
-                      activeChallenge?.level,
-                    )}`}
-                  >
+            {/* Right Sidebar: Preview & Results */}
+            <aside className="flex w-full flex-col gap-4 lg:w-[420px] shrink-0">
+              <div className="panel flex flex-col p-4">
+                <div className="flex items-start justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-ink-500">
+                    Problem Description
+                  </span>
+                  <span className="rounded border border-black/5 bg-black/[0.02] px-1.5 py-0.5 text-[10px] font-bold text-ink-600">
                     {activeChallenge?.level}
                   </span>
                 </div>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <span className="pill">
-                    {activeChallenge?.estimatedMinutes} min
-                  </span>
+                <h2 className="mt-2 text-base font-bold text-ink-900">
+                  {activeChallenge?.title}
+                </h2>
+                <p className="mt-2 text-xs leading-relaxed text-ink-600">
+                  {activeChallenge?.description}
+                </p>
+                <div className="mt-4 flex flex-wrap gap-1.5">
                   {(activeChallenge?.tags || []).map((tag) => (
-                    <span key={tag} className="pill">
+                    <span key={tag} className="rounded-md border border-black/[0.04] bg-white px-2 py-0.5 text-[10px] font-semibold text-ink-500 shadow-sm">
                       {tag}
                     </span>
                   ))}
                 </div>
-                <div className="mt-4">
-                  <p className="text-xs uppercase tracking-[0.24em] text-ink-600">
-                    Objectives
-                  </p>
-                  <ul className="mt-2 space-y-1 text-sm text-ink-700">
-                    {(activeChallenge?.objectives || []).map((objective) => (
-                      <li key={objective} className="flex items-start gap-2">
-                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-ember-400" />
-                        <span>{objective}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
               </div>
 
-              <div className="panel flex h-[360px] flex-col overflow-hidden">
-                <div className="flex items-center justify-between border-b border-sand-200 px-4 py-2">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-ink-600">
+              <div className="panel flex flex-1 flex-col overflow-hidden min-h-[400px]">
+                <div className="flex items-center justify-between border-b border-black/[0.04] bg-black/[0.01] px-2 py-1">
+                  <div className="flex items-center gap-1">
                     {[
                       { id: 'preview', label: 'Preview' },
                       { id: 'tests', label: 'Tests' },
                       { id: 'hint', label: 'Hint' },
-                      { id: 'console', label: 'Console' },
                     ].map((tab) => (
                       <button
                         key={tab.id}
                         type="button"
                         onClick={() => setActiveTab(tab.id)}
-                        className={`rounded-full border px-3 py-1 text-xs transition ${
+                        className={`px-3 py-1.5 text-[11px] font-bold transition-colors ${
                           activeTab === tab.id
-                            ? 'border-ink-800/40 bg-white text-ink-900'
-                            : 'border-sand-200 bg-white/60 text-ink-600'
+                            ? 'text-ink-900 border-b-2 border-ink-900'
+                            : 'text-ink-400 hover:text-ink-600'
                         }`}
                       >
-                        {tab.label}
+                        {tab.label.toUpperCase()}
                       </button>
                     ))}
                   </div>
-                  <span className="pill">Sandbox</span>
                 </div>
 
                 <div className="flex-1 overflow-hidden">
-                  <div
-                    className={
-                      activeTab === 'preview'
-                        ? 'h-full p-3'
-                        : 'h-0 overflow-hidden'
-                    }
-                  >
+                  <div className={activeTab === 'preview' ? 'h-full' : 'h-0 overflow-hidden'}>
                     <Runner
                       files={activeFiles}
                       entryFile={activeChallenge?.entry}
@@ -958,66 +903,28 @@ const App = () => {
                     />
                   </div>
 
-                  {activeTab === 'tests' ? (
-                    <div className="flex h-full flex-col gap-3 p-4 text-sm text-ink-700">
+                  {activeTab === 'tests' && (
+                    <div className="flex h-full flex-col p-4 text-xs overflow-y-auto">
                       <div className="flex items-center justify-between">
-                        <p className="panel-title">Validation</p>
-                        <span
-                          className={`rounded-full border px-3 py-1 text-xs font-semibold ${resultBadge(
-                            testResult.status,
-                          )}`}
-                        >
-                          {testResult.status}
+                        <span className="font-bold uppercase tracking-tighter text-ink-400">Status</span>
+                        <span className={`font-bold ${testResult.status === 'pass' ? 'text-sea-500' : 'text-ember-500'}`}>
+                          {testResult.status.toUpperCase()}
                         </span>
                       </div>
-                      <p className="text-sm text-ink-700">
-                        {testResult.message}
-                      </p>
-                      <div className="grid grid-cols-3 gap-2 text-xs text-ink-600">
-                        <div className="rounded-xl border border-sand-200 bg-white/70 p-2">
-                          <p className="font-semibold text-ink-900">
-                            {stats.fetchCount}
-                          </p>
-                          <p>fetches</p>
-                        </div>
-                        <div className="rounded-xl border border-sand-200 bg-white/70 p-2">
-                          <p className="font-semibold text-ink-900">
-                            {stats.intervalCount}
-                          </p>
-                          <p>intervals</p>
-                        </div>
-                        <div className="rounded-xl border border-sand-200 bg-white/70 p-2">
-                          <p className="font-semibold text-ink-900">
-                            {stats.logCount}
-                          </p>
-                          <p>logs</p>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
+                      <p className="mt-2 font-medium text-ink-700">{testResult.message}</p>
+                      
+                      <div className="mt-4 space-y-2">
                         {activeTests.map((test) => {
-                          const current = caseResults[test.id] || {
-                            status: 'idle',
-                            message: '',
-                          };
-
+                          const current = caseResults[test.id] || { status: 'idle', message: '' };
                           return (
-                            <div
-                              key={test.id}
-                              className="rounded-xl border border-sand-200 bg-white/70 p-3"
-                            >
+                            <div key={test.id} className="rounded-lg border border-black/[0.03] bg-black/[0.01] p-2.5">
                               <div className="flex items-center justify-between">
-                                <p className="text-sm font-semibold text-ink-900">
-                                  {test.label}
-                                </p>
-                                <span
-                                  className={`rounded-full px-2 py-1 text-[10px] font-semibold ${caseBadge(
-                                    current.status,
-                                  )}`}
-                                >
+                                <span className="font-semibold text-ink-900">{test.title}</span>
+                                <span className={`text-[10px] font-bold uppercase ${current.status === 'pass' ? 'text-sea-500' : 'text-ember-500'}`}>
                                   {current.status}
                                 </span>
                               </div>
-                              <p className="mt-1 text-xs text-ink-600">
+                              <p className="mt-1 font-mono text-[10px] text-ink-500">
                                 {current.message || test.expectation}
                               </p>
                             </div>
@@ -1025,102 +932,29 @@ const App = () => {
                         })}
                       </div>
                     </div>
-                  ) : null}
+                  )}
 
-                  {activeTab === 'hint' ? (
+                  {activeTab === 'hint' && (
                     <div className="flex h-full flex-col gap-3 p-4">
-                      <div className="flex items-center justify-between">
-                        <p className="panel-title">AI Hint</p>
-                        <Sparkles className="h-4 w-4 text-ember-500" />
-                      </div>
                       <input
                         type="password"
-                        placeholder="API key"
+                        placeholder="OpenAI/Anthropic API Key"
                         value={apiKey}
-                        onChange={(event) => setApiKey(event.target.value)}
-                        className="w-full rounded-xl border border-sand-200 bg-white/70 px-3 py-2 text-sm"
+                        onChange={(e) => setApiKey(e.target.value)}
+                        className="rounded-md border border-black/10 bg-white px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-ink-900"
                       />
                       <button
-                        type="button"
                         onClick={handleHint}
                         disabled={hintState.status === 'loading'}
-                        className="flex items-center justify-center gap-2 rounded-xl border border-ink-900/80 bg-ink-900 px-3 py-2 text-sm font-semibold text-sand-50 transition hover:bg-ink-800 disabled:cursor-not-allowed disabled:opacity-70"
+                        className="flex h-9 items-center justify-center gap-2 rounded-md bg-ink-900 text-[11px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
                       >
-                        <Sparkles className="h-4 w-4" />
-                        Get hint
+                        <Sparkles className="h-3.5 w-3.5" />
+                        REQUEST AI HINT
                       </button>
-                      <p
-                        className={`text-sm ${
-                          hintState.status === 'error'
-                            ? 'text-ember-500'
-                            : 'text-ink-600'
-                        }`}
-                      >
+                      <div className="rounded-lg border border-black/[0.03] bg-black/[0.01] p-3 text-xs leading-relaxed text-ink-600">
                         {hintState.message}
-                      </p>
-                    </div>
-                  ) : null}
-
-                  {activeTab === 'console' ? (
-                    <div className="flex h-full flex-col gap-2 p-4 text-xs text-ink-600">
-                      {logs.length === 0 ? (
-                        <p>No logs yet. Keep it lean for a higher score.</p>
-                      ) : (
-                        logs.map((log, index) => (
-                          <div
-                            key={`log-${index}`}
-                            className="rounded-lg border border-sand-200 bg-white/70 px-2 py-1 font-mono"
-                          >
-                            {log.join(' ')}
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  ) : null}
-                </div>
-              </div>
-
-              <div className="panel p-4">
-                <div className="flex items-center justify-between">
-                  <p className="panel-title">Run history</p>
-                  <button
-                    type="button"
-                    onClick={handleClearHistory}
-                    className="text-xs text-ink-500 underline-offset-4 hover:underline"
-                  >
-                    Clear
-                  </button>
-                </div>
-                <div className="mt-3 space-y-2 text-xs text-ink-600">
-                  {activeHistory.length === 0 ? (
-                    <p>No submissions yet. Hit Submit to log a run.</p>
-                  ) : (
-                    activeHistory.map((entry, index) => (
-                      <div
-                        key={`history-${index}`}
-                        className="rounded-xl border border-sand-200 bg-white/70 p-3"
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="text-[11px] uppercase text-ink-500">
-                            {entry.mode}
-                          </span>
-                          <span
-                            className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${resultBadge(
-                              entry.status,
-                            )}`}
-                          >
-                            {entry.status}
-                          </span>
-                        </div>
-                        <p className="mt-1 text-sm text-ink-900">
-                          {entry.message}
-                        </p>
-                        <div className="mt-2 flex items-center justify-between text-[11px] text-ink-500">
-                          <span>{entry.duration}s</span>
-                          <span>Score {entry.score}</span>
-                        </div>
                       </div>
-                    ))
+                    </div>
                   )}
                 </div>
               </div>

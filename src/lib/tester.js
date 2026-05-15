@@ -131,6 +131,37 @@ const testSuites = {
 
     setTimeout(runTests, 200);
   `,
+  'broken-pipeline': `
+    const reportCase = (id, status, message) => {
+      if (window.__reportCase) {
+        window.__reportCase({ id, status, message });
+      }
+    };
+
+    const runTests = async () => {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      const resultEl = document.querySelector('[data-testid="result"]');
+      const text = resultEl ? resultEl.textContent.trim() : '';
+
+      if (text.includes('ID: 101') && text.includes('Cascade')) {
+        reportCase('pipeline-contract', 'pass', 'Contract restored.');
+        window.__report({ status: 'pass', message: 'Data pipeline is healthy.' });
+        return;
+      }
+
+      reportCase(
+        'pipeline-contract',
+        'fail',
+        'Expected ID: 101 - Cascade, got "' + text + '".',
+      );
+      window.__report({
+        status: 'fail',
+        message: 'Pipeline mismatch detected.',
+      });
+    };
+
+    setTimeout(runTests, 200);
+  `,
 };
 
 export const buildTestScript = (challengeId) => {

@@ -108,6 +108,54 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
 `;
 
+const pipelineService = `
+function getRawData() {
+  return new Promise((resolve) => {
+    // API returns 'uid' instead of 'id'
+    setTimeout(() => resolve({ uid: 101, name: 'Cascade' }), 100);
+  });
+}
+`;
+
+const pipelineAdapter = `
+function transform(raw) {
+  // Bug: Accessing .id instead of .uid from the raw response
+  return {
+    id: raw.id, 
+    label: raw.name
+  };
+}
+`;
+
+const pipelineApp = `
+const { useEffect, useState } = React;
+
+function App() {
+  const [item, setItem] = useState(null);
+
+  useEffect(() => {
+    getRawData()
+      .then(transform)
+      .then(setItem);
+  }, []);
+
+  if (!item) return <div>Loading...</div>;
+
+  return (
+    <div className="stack">
+      <h2>Broken Pipeline</h2>
+      <p>Fix the contract between files.</p>
+      <div className="label" data-testid="result">
+        {item.id ? \`ID: \${item.id} - \${item.label}\` : 'Invalid Data'}
+      </div>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+`;
+
 export const challenges = [
   {
     id: 'shadow-state',
@@ -216,5 +264,41 @@ export const challenges = [
     }, 400);
     return () => clearInterval(id);
   }, []);`
+  },
+  {
+    id: 'broken-pipeline',
+    level: 'Senior',
+    title: 'The Broken Pipeline',
+    description:
+      'A multi-file data pipeline is failing. Trace the contract break across the service and the adapter.',
+    estimatedMinutes: 18,
+    tags: ['Architecture', 'Contracts', 'Pipelines'],
+    objectives: [
+      'Ensure the final UI renders the correct ID and Label.',
+      'Identify which file in the sequence contains the schema mismatch.',
+    ],
+    tests: [
+      {
+        id: 'pipeline-contract',
+        label: 'Contract valid',
+        expectation: 'Result contains ID: 101 - Cascade.',
+      },
+    ],
+    files: {
+      'service.js': pipelineService,
+      'adapter.js': pipelineAdapter,
+      'App.jsx': pipelineApp,
+    },
+    entry: 'App.jsx',
+    lockedFiles: ['service.js'],
+    hint:
+      'The service returns a payload with a different key than the adapter expects. Senior fix: update the adapter to match the new service contract.',
+    seniorInsight: 'In large systems, bugs often live in the "glue" between files. A senior developer traces the data flow from the source to the sink to find where the contract was broken.',
+    seniorSolution: `function transform(raw) {
+  return {
+    id: raw.uid, 
+    label: raw.name
+  };
+}`
   },
 ];

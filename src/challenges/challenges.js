@@ -289,6 +289,7 @@ export const challenges = [
       'adapter.js': pipelineAdapter,
       'App.jsx': pipelineApp,
     },
+    flow: ['service.js', 'adapter.js', 'App.jsx'],
     entry: 'App.jsx',
     lockedFiles: ['service.js'],
     hint:

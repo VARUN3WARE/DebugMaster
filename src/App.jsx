@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import {
   Bug,
   CheckCircle2,
@@ -894,6 +894,24 @@ const App = () => {
                     </span>
                   ))}
                 </div>
+
+                {activeChallenge?.flow && (
+                  <div className="mt-6">
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-ink-400">System Flow</span>
+                    <div className="mt-2 flex items-center gap-2">
+                      {activeChallenge.flow.map((step, i) => (
+                        <Fragment key={step}>
+                          <div className="rounded border border-black/[0.06] bg-black/[0.02] px-2 py-1 text-[10px] font-mono text-ink-600">
+                            {step}
+                          </div>
+                          {i < activeChallenge.flow.length - 1 && (
+                            <div className="h-px w-4 bg-black/[0.08]" />
+                          )}
+                        </Fragment>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="panel flex flex-1 flex-col overflow-hidden min-h-[400px]">

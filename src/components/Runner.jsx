@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { buildTestScript } from '../lib/tester';
 
-const buildSandboxHtml = ({ combinedCode, testScript, title }) => {
+const buildSandboxHtml = ({ combinedCode, testScript, title, runId }) => {
   const encodedCode = JSON.stringify(combinedCode);
 
   return `<!doctype html>
@@ -58,7 +58,10 @@ const buildSandboxHtml = ({ combinedCode, testScript, title }) => {
       window.__debug = __debug;
 
       const post = (type, payload) => {
-        window.parent.postMessage({ source: 'senioritytrap', type, payload }, '*');
+        window.parent.postMessage(
+          { source: 'senioritytrap', type, payload, runId: '${runId}' },
+          '*',
+        );
       };
 
       post('stats', {
@@ -117,6 +120,10 @@ const buildSandboxHtml = ({ combinedCode, testScript, title }) => {
       window.__report = (payload) => {
         post('test', payload);
       };
+
+      window.__reportCase = (payload) => {
+        post('case', payload);
+      };
     </script>
 
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
@@ -146,7 +153,7 @@ const buildSandboxHtml = ({ combinedCode, testScript, title }) => {
 </html>`;
 };
 
-const Runner = ({ files, entryFile, challengeId, runKey, onEvent }) => {
+const Runner = ({ files, entryFile, challengeId, runKey, runId, onEvent }) => {
   const combinedCode = useMemo(() => {
     const ordered = Object.keys(files || {});
     const safeEntry = entryFile && ordered.includes(entryFile) ? entryFile : ordered[0];
@@ -164,8 +171,9 @@ const Runner = ({ files, entryFile, challengeId, runKey, onEvent }) => {
       combinedCode,
       testScript: buildTestScript(challengeId),
       title: `Preview: ${challengeId}`,
+      runId,
     });
-  }, [combinedCode, challengeId]);
+  }, [combinedCode, challengeId, runId]);
 
   useEffect(() => {
     if (!onEvent) {

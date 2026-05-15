@@ -3,6 +3,7 @@ import Editor from '@monaco-editor/react';
 const baseOptions = {
   fontSize: 14,
   lineHeight: 22,
+  fontFamily: 'JetBrains Mono, monospace',
   minimap: { enabled: false },
   scrollbar: { verticalScrollbarSize: 6, horizontalScrollbarSize: 6 },
   padding: { top: 16 },

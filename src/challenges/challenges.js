@@ -115,10 +115,24 @@ export const challenges = [
     title: 'The Shadow State',
     description:
       'A double update uses stale state. Fix it without changing the UI flow.',
+    estimatedMinutes: 8,
+    tags: ['React', 'State', 'Batching'],
+    objectives: [
+      'Make the quick add increment apply twice in one click.',
+      'Keep the UI copy and structure unchanged.',
+    ],
+    tests: [
+      {
+        id: 'double-increment',
+        label: 'Quick add adds 2',
+        expectation: 'Count should read 2 after one click.',
+      },
+    ],
     files: {
       'App.jsx': shadowStateApp,
     },
     entry: 'App.jsx',
+    lockedFiles: [],
     hint:
       'The handler performs multiple updates in the same tick. Explain why the second update sees an outdated value.',
   },
@@ -128,11 +142,30 @@ export const challenges = [
     title: 'The Infinite Loop',
     description:
       'A data fetch effect keeps re-triggering itself. Make it settle after the first load.',
+    estimatedMinutes: 12,
+    tags: ['React', 'Effects', 'Fetching'],
+    objectives: [
+      'Load the user data once on mount.',
+      'Prevent self-triggered re-fetch cycles.',
+    ],
+    tests: [
+      {
+        id: 'user-loaded',
+        label: 'User loads',
+        expectation: 'Name appears in the UI.',
+      },
+      {
+        id: 'fetch-threshold',
+        label: 'Fetch count stable',
+        expectation: 'Fetch count stays under 5.',
+      },
+    ],
     files: {
       'api.js': loopApi,
       'App.jsx': loopApp,
     },
     entry: 'App.jsx',
+    lockedFiles: ['api.js'],
     hint:
       'The effect depends on the same state it updates. Explain the feedback loop rather than the fix.',
   },
@@ -142,11 +175,25 @@ export const challenges = [
     title: 'The Memory Leak',
     description:
       'An interval keeps running after unmount. Stop the leak without changing behavior.',
+    estimatedMinutes: 15,
+    tags: ['React', 'Cleanup', 'Intervals'],
+    objectives: [
+      'Ensure background work stops on unmount.',
+      'Keep the ticker behavior intact while mounted.',
+    ],
+    tests: [
+      {
+        id: 'interval-cleanup',
+        label: 'Interval cleaned',
+        expectation: 'No active intervals after unmount.',
+      },
+    ],
     files: {
       'Widget.jsx': leakWidget,
       'App.jsx': leakApp,
     },
     entry: 'App.jsx',
+    lockedFiles: [],
     hint:
       'Intervals survive unmounts unless you tear them down. Explain what lifecycle step is missing.',
   },

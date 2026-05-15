@@ -1,16 +1,52 @@
-# React + Vite
+# SeniorityTrap
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A debug-first training ground that mimics a LeetCode-style workflow for fixing real-world React bugs.
 
-Currently, two official plugins are available:
+## Why this exists
+Writing code is cheaper than verifying it. SeniorityTrap focuses on the skill that is still expensive: finding and fixing issues in existing code with minimal noise.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## MVP scope
+- Three curated bugs that show progression from junior to senior.
+- Frontend-only execution to avoid backend security and latency.
+- Fast validation with a sandboxed iframe and lightweight test scripts.
 
-## React Compiler
+## Core features
+- Monaco editor with a file explorer and locked files.
+- Sandboxed React preview with iframe + Babel.
+- Validation panel with per-test case status and run history.
+- Seniority score based on time and console log count.
+- AI hint button that explains why the bug exists, not the fix.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Challenges
+1. Junior: The Shadow State
+	- A stale state update causes a double increment to collapse.
+2. Mid: The Infinite Loop
+	- A dependency cycle causes a fetch effect to run repeatedly.
+3. Senior: The Memory Leak
+	- An interval continues running after unmount.
 
-## Expanding the ESLint configuration
+## How it works
+- Challenge files are stitched into one script and compiled in the browser.
+- Tests run inside the iframe and post results back to the parent UI.
+- Fetches, intervals, and console logs are instrumented to score seniority.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Local development
+- Install dependencies: `npm install`
+- Run the dev server: `npm run dev`
+- Production build: `npm run build`
+
+## AI hint configuration
+- Enter an API key in the Hint tab.
+- Optional env vars:
+  - `VITE_LLM_ENDPOINT`
+  - `VITE_LLM_MODEL`
+
+## Submission write-up
+**What I built:**
+A debug-first training ground. Most platforms teach you how to write code, but industry reality is 70 percent reading and fixing. This app creates broken environments where you must use professional debugging skills to pass.
+
+**Why this:**
+AI makes writing code cheap, but verifying code expensive. We need tools that train humans to become expert reviewers.
+
+**What I cut:**
+I cut backend execution. A browser-based JS sandbox removes most of the latency and cost, making it faster and easier to ship.

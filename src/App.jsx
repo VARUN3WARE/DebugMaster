@@ -12,8 +12,16 @@ import {
   Trophy,
 } from 'lucide-react';
 import CodeEditor from './components/Editor';
+import RealBugImporter from './components/RealBugImporter';
 import Runner from './components/Runner';
-import { challenges } from './challenges/challenges';
+import { coreChallenges } from './challenges/challenges';
+import { createEchoChallenge } from './challenges/echoes';
+import {
+  fetchClosingPullRequest,
+  fetchRealWorldBugScenario,
+  fetchRepoBugIssues,
+  parseRepoInput,
+} from './lib/githubEchoes';
 import { requestHint } from './lib/hintClient';
 import { loadProgress, recordHistoryEntry, saveProgress } from './lib/progress';
 
@@ -28,7 +36,7 @@ const calculateScore = (seconds, logs, isSeniorMode) => {
   return isSeniorMode ? Math.floor(base * (logs > 3 ? 0.5 : 1.2)) : base;
 };
 
-const getGrade = (score, isSeniorMode) => {
+const getGrade = (score) => {
   if (score >= 1000) return 'S';
   if (score >= 850) return 'A';
   if (score >= 700) return 'B';
@@ -62,19 +70,6 @@ const resultBadge = (status) => {
   }
 };
 
-const caseBadge = (status) => {
-  switch (status) {
-    case 'pass':
-      return 'bg-sea-500/15 text-sea-500';
-    case 'fail':
-      return 'bg-ember-400/15 text-ember-500';
-    case 'running':
-      return 'bg-ink-800/10 text-ink-600';
-    default:
-      return 'bg-sand-200 text-ink-600';
-  }
-};
-
 const buildCaseResults = (tests = []) => {
   return tests.reduce((accumulator, test) => {
     accumulator[test.id] = { status: 'idle', message: '' };
@@ -93,25 +88,34 @@ const formatTimestamp = (timestamp) => {
   return date.toLocaleString();
 };
 
+const sourceBadge = (sourceType) => {
+  if (sourceType === 'real-world') {
+    return 'bg-ember-400/15 text-ember-500 border-ember-400/30';
+  }
+
+  return 'bg-black/[0.03] text-ink-500 border-black/10';
+};
+
 const App = () => {
   const [activeView, setActiveView] = useState('home');
   const [levelFilter, setLevelFilter] = useState('All');
-  const [activeChallengeId, setActiveChallengeId] = useState(challenges[0].id);
+  const [activeChallengeId, setActiveChallengeId] = useState(coreChallenges[0].id);
+  const [importedChallenges, setImportedChallenges] = useState([]);
   const [codeByChallenge, setCodeByChallenge] = useState(() => {
-    return challenges.reduce((accumulator, challenge) => {
+    return coreChallenges.reduce((accumulator, challenge) => {
       accumulator[challenge.id] = { ...challenge.files };
       return accumulator;
     }, {});
   });
-  const [activeFile, setActiveFile] = useState(challenges[0].entry);
+  const [activeFile, setActiveFile] = useState(coreChallenges[0].entry);
   const [activeTab, setActiveTab] = useState('preview');
-  const [runKey, setRunKey] = useState(Date.now());
-  const [runId, setRunId] = useState(String(Date.now()));
-  const [startTime, setStartTime] = useState(Date.now());
+  const [navigatorMode, setNavigatorMode] = useState('arena');
+  const [runKey, setRunKey] = useState(() => Date.now());
+  const [runId, setRunId] = useState(() => String(Date.now()));
+  const [startTime, setStartTime] = useState(() => Date.now());
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [timerRunning, setTimerRunning] = useState(false);
   const [score, setScore] = useState(0);
-  const [logs, setLogs] = useState([]);
   const [stats, setStats] = useState({
     logCount: 0,
     fetchCount: 0,
@@ -122,7 +126,7 @@ const App = () => {
     message: 'Run the tests to validate your fix.',
   });
   const [caseResults, setCaseResults] = useState(
-    buildCaseResults(challenges[0].tests),
+    buildCaseResults(coreChallenges[0].tests),
   );
   const [runMeta, setRunMeta] = useState({
     mode: 'run',
@@ -138,8 +142,21 @@ const App = () => {
     status: 'idle',
     message: 'Hints explain the bug, not the fix.',
   });
+  const [repoInput, setRepoInput] = useState('facebook/react');
+  const [gitHubToken, setGitHubToken] = useState('');
+  const [discoveryState, setDiscoveryState] = useState({
+    status: 'idle',
+    message:
+      'Curated connector mode: pull closed bug issues from a repository, then map one into the arena.',
+  });
+  const [discoveredIssues, setDiscoveredIssues] = useState([]);
+  const [importingIssueId, setImportingIssueId] = useState('');
 
-  const activeChallenge = challenges.find(
+  const challengeCatalog = useMemo(() => {
+    return [...coreChallenges, ...importedChallenges];
+  }, [importedChallenges]);
+
+  const activeChallenge = challengeCatalog.find(
     (challenge) => challenge.id === activeChallengeId,
   );
   const activeFiles = codeByChallenge[activeChallengeId];
@@ -147,6 +164,9 @@ const App = () => {
   const activeTests = activeChallenge?.tests ?? [];
   const activeHistory = progress?.history?.[activeChallengeId] ?? [];
   const isReadOnly = activeChallenge?.lockedFiles?.includes(activeFile) ?? false;
+  const displayedScore = timerRunning
+    ? calculateScore(elapsedSeconds, stats.logCount, seniorMode)
+    : score;
 
   const combinedCodeForHint = useMemo(() => {
     const files = activeFiles || {};
@@ -157,7 +177,7 @@ const App = () => {
 
   const bestScores = useMemo(() => {
     const output = {};
-    challenges.forEach((challenge) => {
+    challengeCatalog.forEach((challenge) => {
       const history = progress?.history?.[challenge.id] || [];
       output[challenge.id] = history.reduce(
         (best, entry) => Math.max(best, entry.score || 0),
@@ -165,7 +185,7 @@ const App = () => {
       );
     });
     return output;
-  }, [progress]);
+  }, [challengeCatalog, progress]);
 
   const totalSolved = Object.values(progress?.passes || {}).filter(Boolean)
     .length;
@@ -177,7 +197,7 @@ const App = () => {
   const allHistory = useMemo(() => {
     const entries = [];
     Object.entries(progress?.history || {}).forEach(([challengeId, history]) => {
-      const challenge = challenges.find((item) => item.id === challengeId);
+      const challenge = challengeCatalog.find((item) => item.id === challengeId);
       history.forEach((entry) => {
         entries.push({
           ...entry,
@@ -193,9 +213,9 @@ const App = () => {
       const right = new Date(b.timestamp || 0).getTime();
       return right - left;
     });
-  }, [progress]);
+  }, [challengeCatalog, progress]);
 
-  const filteredChallenges = challenges.filter((challenge) => {
+  const filteredChallenges = challengeCatalog.filter((challenge) => {
     if (levelFilter === 'All') {
       return true;
     }
@@ -217,36 +237,6 @@ const App = () => {
   }, [timerRunning, startTime]);
 
   useEffect(() => {
-    if (!timerRunning) {
-      return;
-    }
-    setScore(calculateScore(elapsedSeconds, stats.logCount, seniorMode));
-  }, [timerRunning, elapsedSeconds, stats.logCount, seniorMode]);
-
-  useEffect(() => {
-    if (activeChallenge?.entry) {
-      setActiveFile(activeChallenge.entry);
-    }
-    setElapsedSeconds(0);
-    setTimerRunning(false);
-    setScore(0);
-    setTestResult({
-      status: 'idle',
-      message: 'Run the tests to validate your fix.',
-    });
-    setStats({ logCount: 0, fetchCount: 0, intervalCount: 0 });
-    setLogs([]);
-    setRunKey(Date.now());
-    setRunId(String(Date.now()));
-    setCaseResults(buildCaseResults(activeChallenge?.tests));
-    setHintState({
-      status: 'idle',
-      message: 'Hints explain the bug, not the fix.',
-    });
-    setActiveTab('preview');
-  }, [activeChallengeId, activeChallenge]);
-
-  useEffect(() => {
     saveProgress(progress);
   }, [progress]);
 
@@ -257,6 +247,37 @@ const App = () => {
       localStorage.removeItem('senioritytrap_api_key');
     }
   }, [apiKey]);
+
+  const resetChallengeState = (challenge) => {
+    setActiveFile(challenge?.entry || 'App.jsx');
+    setElapsedSeconds(0);
+    setTimerRunning(false);
+    setScore(0);
+    setTestResult({
+      status: 'idle',
+      message: 'Run the tests to validate your fix.',
+    });
+    setStats({ logCount: 0, fetchCount: 0, intervalCount: 0 });
+    setCaseResults(buildCaseResults(challenge?.tests));
+    setHintState({
+      status: 'idle',
+      message: 'Hints explain the bug, not the fix.',
+    });
+    setRunKey(() => Date.now());
+    setRunId(() => String(Date.now()));
+    setActiveTab('preview');
+  };
+
+  const selectChallenge = (challenge) => {
+    if (!challenge) {
+      return;
+    }
+
+    if (challenge.id !== activeChallengeId) {
+      setActiveChallengeId(challenge.id);
+    }
+    resetChallengeState(challenge);
+  };
 
   const handleCodeChange = (value) => {
     setCodeByChallenge((previous) => ({
@@ -270,13 +291,12 @@ const App = () => {
 
   const handleRun = (mode = 'run') => {
     setRunMeta({ mode, startedAt: Date.now() });
-    setStartTime(Date.now());
+    setStartTime(() => Date.now());
     setElapsedSeconds(0);
     setTimerRunning(true);
     setScore(calculateScore(0, 0, seniorMode));
     setTestResult({ status: 'running', message: 'Running tests...' });
     setStats({ logCount: 0, fetchCount: 0, intervalCount: 0 });
-    setLogs([]);
     setCaseResults((previous) => {
       const next = { ...previous };
       activeTests.forEach((test) => {
@@ -284,8 +304,8 @@ const App = () => {
       });
       return next;
     });
-    setRunKey(Date.now());
-    setRunId(String(Date.now()));
+    setRunKey(() => Date.now());
+    setRunId(() => String(Date.now()));
     setActiveTab('tests');
   };
 
@@ -306,14 +326,13 @@ const App = () => {
       message: 'Run the tests to validate your fix.',
     });
     setStats({ logCount: 0, fetchCount: 0, intervalCount: 0 });
-    setLogs([]);
     setCaseResults(buildCaseResults(activeChallenge.tests));
     setHintState({
       status: 'idle',
       message: 'Hints explain the bug, not the fix.',
     });
-    setRunKey(Date.now());
-    setRunId(String(Date.now()));
+    setRunKey(() => Date.now());
+    setRunId(() => String(Date.now()));
     setActiveTab('preview');
   };
 
@@ -326,7 +345,6 @@ const App = () => {
       if (!timerRunning) {
         return;
       }
-      setLogs(event.payload.logs.slice(-6));
       setStats((previous) => ({
         ...previous,
         logCount: event.payload.logCount,
@@ -451,8 +469,87 @@ const App = () => {
   };
 
   const handleOpenChallenge = (challengeId) => {
-    setActiveChallengeId(challengeId);
+    const challenge = challengeCatalog.find((item) => item.id === challengeId);
+    if (challenge) {
+      selectChallenge(challenge);
+    }
     setActiveView('sandbox');
+  };
+
+  const handleDiscoverIssues = async () => {
+    try {
+      const repo = parseRepoInput(repoInput);
+      setDiscoveryState({
+        status: 'loading',
+        message: `Searching closed bug reports in ${repo}...`,
+      });
+      const issues = await fetchRepoBugIssues({
+        repo,
+        token: gitHubToken.trim(),
+      });
+      setDiscoveredIssues(issues);
+      setDiscoveryState({
+        status: 'ready',
+        message:
+          issues.length > 0
+            ? `Imported ${issues.length} candidate bugs from ${repo}. Pick one to bring into the arena.`
+            : `No closed bug issues with the bug label were found in ${repo}.`,
+      });
+    } catch (error) {
+      setDiscoveredIssues([]);
+      setDiscoveryState({
+        status: 'error',
+        message: error.message || 'Failed to query GitHub.',
+      });
+    }
+  };
+
+  const handleImportIssue = async (issue) => {
+    const existing = importedChallenges.find(
+      (challenge) =>
+        challenge.origin?.repo === issue.repo &&
+        challenge.origin?.issueNumber === issue.number,
+    );
+
+    if (existing) {
+      selectChallenge(existing);
+      setActiveView('sandbox');
+      setNavigatorMode('arena');
+      return;
+    }
+
+    setImportingIssueId(issue.id);
+
+    try {
+      const { pullRequest, files } = await fetchRealWorldBugScenario({
+        repo: issue.repo,
+        issueNumber: issue.number,
+        token: gitHubToken.trim(),
+      });
+
+      const nextChallenge = createEchoChallenge({
+        issue,
+        pullRequest,
+        files,
+      });
+
+      setImportedChallenges((previous) => [nextChallenge, ...previous]);
+      setCodeByChallenge((previous) => ({
+        ...previous,
+        [nextChallenge.id]: { ...nextChallenge.files },
+      }));
+      selectChallenge(nextChallenge);
+      setActiveView('sandbox');
+      setNavigatorMode('arena');
+      setDiscoveryState({
+        status: 'ready',
+        message: files 
+          ? `Imported issue #${issue.number} with real code from ${issue.repo}.`
+          : `Imported issue #${issue.number} from ${issue.repo} (mapped to template).`,
+      });
+    } finally {
+      setImportingIssueId('');
+    }
   };
 
   return (
@@ -516,10 +613,10 @@ const App = () => {
             </div>
             <div className="flex items-center gap-2 rounded-lg bg-black/[0.03] px-3 py-1.5 text-xs font-semibold text-ink-600">
               <div className="flex h-5 w-5 items-center justify-center rounded-md bg-white text-[10px] font-bold text-ink-900 shadow-sm">
-                {getGrade(score, seniorMode)}
+                {getGrade(displayedScore)}
               </div>
               <Trophy className="h-3.5 w-3.5 text-ember-500" />
-              <span>{score} pts</span>
+              <span>{displayedScore} pts</span>
             </div>
             <div className="h-4 w-px bg-black/[0.06]" />
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sand-200 text-ink-600">
@@ -574,7 +671,7 @@ const App = () => {
             </div>
             <div className="grid gap-6 md:grid-cols-3">
               {[
-                { label: 'Solved', value: `${totalSolved}/${challenges.length}`, icon: CheckCircle2 },
+                { label: 'Solved', value: `${totalSolved}/${challengeCatalog.length}`, icon: CheckCircle2 },
                 { label: 'Attempts', value: totalAttempts, icon: Flame },
                 { label: 'Best Score', value: Math.max(0, ...Object.values(bestScores)), icon: Trophy },
               ].map((stat, i) => (
@@ -640,6 +737,9 @@ const App = () => {
                             {challenge.title}
                           </span>
                           {isComplete && <CheckCircle2 className="h-3.5 w-3.5 text-sea-500" />}
+                          <span className={`rounded border px-1.5 py-0.5 text-[9px] font-bold uppercase ${sourceBadge(challenge.sourceType)}`}>
+                            {challenge.sourceType === 'real-world' ? 'Echo' : 'Core'}
+                          </span>
                         </div>
                         <p className="text-[11px] text-ink-500">{challenge.description}</p>
                       </div>
@@ -736,45 +836,86 @@ const App = () => {
             {/* Left Sidebar: Navigator */}
             <aside className="flex w-full flex-col gap-4 lg:w-[300px] shrink-0">
               <div className="panel flex flex-col overflow-hidden">
-                <div className="border-b border-black/[0.04] bg-black/[0.01] px-4 py-2">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-ink-500">
-                    Challenge Navigator
-                  </span>
+                <div className="border-b border-black/[0.04] bg-black/[0.01] px-3 py-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-ink-500">
+                      Arena Navigator
+                    </span>
+                    <div className="flex rounded-lg bg-white p-0.5 shadow-sm ring-1 ring-black/[0.05]">
+                      {[
+                        { id: 'arena', label: 'Arena' },
+                        { id: 'import', label: 'Import Real Bug' },
+                      ].map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => setNavigatorMode(item.id)}
+                          className={`rounded-md px-2 py-1 text-[10px] font-bold transition-colors ${
+                            navigatorMode === item.id
+                              ? 'bg-ink-900 text-white'
+                              : 'text-ink-500 hover:text-ink-700'
+                          }`}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                <div className="flex h-[300px] flex-col gap-1 overflow-y-auto p-2">
-                  {challenges.map((challenge) => {
-                    const isActive = challenge.id === activeChallengeId;
-                    const isComplete = progress?.passes?.[challenge.id];
 
-                    return (
-                      <button
-                        key={challenge.id}
-                        type="button"
-                        onClick={() => setActiveChallengeId(challenge.id)}
-                        className={`flex flex-col gap-1 rounded-lg px-3 py-2 text-left transition-colors ${
-                          isActive
-                            ? 'bg-black/5 ring-1 ring-black/5'
-                            : 'hover:bg-black/[0.02]'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className={`text-sm font-semibold ${isActive ? 'text-ink-900' : 'text-ink-700'}`}>
-                            {challenge.title}
-                          </span>
-                          <span className={`text-[10px] font-bold ${isActive ? 'text-ink-600' : 'text-ink-400'}`}>
-                            {challenge.level}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between text-[10px] text-ink-500">
-                          <span>{challenge.estimatedMinutes}m</span>
-                          {isComplete && (
-                            <CheckCircle2 className="h-3 w-3 text-sea-500" />
-                          )}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
+                {navigatorMode === 'arena' ? (
+                  <div className="flex h-[300px] flex-col gap-1 overflow-y-auto p-2">
+                    {challengeCatalog.map((challenge) => {
+                      const isActive = challenge.id === activeChallengeId;
+                      const isComplete = progress?.passes?.[challenge.id];
+
+                      return (
+                        <button
+                          key={challenge.id}
+                          type="button"
+                          onClick={() => selectChallenge(challenge)}
+                          className={`flex flex-col gap-1 rounded-lg px-3 py-2 text-left transition-colors ${
+                            isActive
+                              ? 'bg-black/5 ring-1 ring-black/5'
+                              : 'hover:bg-black/[0.02]'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className={`text-sm font-semibold ${isActive ? 'text-ink-900' : 'text-ink-700'}`}>
+                              {challenge.title}
+                            </span>
+                            <span className={`text-[10px] font-bold ${isActive ? 'text-ink-600' : 'text-ink-400'}`}>
+                              {challenge.level}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between text-[10px] text-ink-500">
+                            <div className="flex items-center gap-1.5">
+                              <span>{challenge.estimatedMinutes}m</span>
+                              <span className={`rounded border px-1.5 py-0.5 text-[9px] font-bold uppercase ${sourceBadge(challenge.sourceType)}`}>
+                                {challenge.sourceType === 'real-world' ? 'Echo' : 'Core'}
+                              </span>
+                            </div>
+                            {isComplete && (
+                              <CheckCircle2 className="h-3 w-3 text-sea-500" />
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <RealBugImporter
+                    repoInput={repoInput}
+                    onRepoInputChange={setRepoInput}
+                    tokenInput={gitHubToken}
+                    onTokenInputChange={setGitHubToken}
+                    onDiscover={handleDiscoverIssues}
+                    discoveryState={discoveryState}
+                    discoveredIssues={discoveredIssues}
+                    onImportIssue={handleImportIssue}
+                    importingId={importingIssueId}
+                  />
+                )}
               </div>
 
               <div className="panel flex flex-col overflow-hidden">
@@ -904,6 +1045,80 @@ const App = () => {
                   ))}
                 </div>
 
+                {activeChallenge?.sourceType === 'real-world' && activeChallenge.origin ? (
+                  <div className="mt-5 rounded-xl border border-ember-400/20 bg-ember-400/10 p-4">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-ember-500">
+                        Historical Source
+                      </span>
+                      <span className="rounded-full border border-ember-400/20 bg-white px-2 py-1 text-[9px] font-bold uppercase text-ember-500">
+                        {activeChallenge.origin.repo}
+                      </span>
+                    </div>
+                    <div className="mt-3 grid grid-cols-2 gap-3 text-[10px] text-ink-600">
+                      <div>
+                        <p className="font-bold uppercase tracking-widest text-ink-400">
+                          Issue
+                        </p>
+                        <p className="mt-1 font-semibold text-ink-900">
+                          #{activeChallenge.origin.issueNumber}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="font-bold uppercase tracking-widest text-ink-400">
+                          Impact
+                        </p>
+                        <p className="mt-1 font-semibold text-ink-900">
+                          {activeChallenge.origin.comments} comments
+                        </p>
+                      </div>
+                    </div>
+
+                    {activeChallenge.origin.sections?.steps ? (
+                      <div className="mt-3">
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-ink-400">
+                          Steps To Reproduce
+                        </p>
+                        <p className="mt-1 text-[11px] leading-relaxed text-ink-700">
+                          {activeChallenge.origin.sections.steps}
+                        </p>
+                      </div>
+                    ) : null}
+
+                    {activeChallenge.origin.sections?.expected ? (
+                      <div className="mt-3">
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-ink-400">
+                          Expected Behavior
+                        </p>
+                        <p className="mt-1 text-[11px] leading-relaxed text-ink-700">
+                          {activeChallenge.origin.sections.expected}
+                        </p>
+                      </div>
+                    ) : null}
+
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <a
+                        href={activeChallenge.origin.issueUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="rounded-lg border border-black/10 bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-ink-700 transition-colors hover:bg-black/[0.03]"
+                      >
+                        Open Issue
+                      </a>
+                      {activeChallenge.origin.pullRequest?.url ? (
+                        <a
+                          href={activeChallenge.origin.pullRequest.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="rounded-lg bg-ink-900 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white transition-opacity hover:opacity-90"
+                        >
+                          Historical Fix
+                        </a>
+                      ) : null}
+                    </div>
+                  </div>
+                ) : null}
+
                 {activeChallenge?.flow && (
                   <div className="mt-6">
                     <span className="text-[9px] font-bold uppercase tracking-widest text-ink-400">System Flow</span>
@@ -952,7 +1167,7 @@ const App = () => {
                     <Runner
                       files={activeFiles}
                       entryFile={activeChallenge?.entry}
-                      challengeId={activeChallenge?.id}
+                      challenge={activeChallenge}
                       runKey={runKey}
                       runId={runId}
                       onEvent={handleSandboxEvent}
@@ -975,7 +1190,9 @@ const App = () => {
                           return (
                             <div key={test.id} className="rounded-lg border border-black/[0.03] bg-black/[0.01] p-2.5">
                               <div className="flex items-center justify-between">
-                                <span className="font-semibold text-ink-900">{test.title}</span>
+                                <span className="font-semibold text-ink-900">
+                                  {test.label || test.title}
+                                </span>
                                 <span className={`text-[10px] font-bold uppercase ${current.status === 'pass' ? 'text-sea-500' : 'text-ember-500'}`}>
                                   {current.status}
                                 </span>
@@ -1037,7 +1254,7 @@ const App = () => {
             <div className="p-8">
               <div className="flex items-start gap-6">
                 <div className="flex h-20 w-20 flex-col items-center justify-center rounded-2xl bg-black/[0.03] ring-1 ring-black/[0.06]">
-                  <span className="text-3xl font-black text-ink-900">{getGrade(score, seniorMode)}</span>
+                  <span className="text-3xl font-black text-ink-900">{getGrade(displayedScore)}</span>
                   <span className="text-[10px] font-bold text-ink-400 uppercase">Grade</span>
                 </div>
                 <div className="flex-1 space-y-4">
@@ -1060,6 +1277,21 @@ const App = () => {
                       {activeChallenge?.seniorInsight}
                     </p>
                   </div>
+
+                  {activeChallenge?.sourceType === 'real-world' ? (
+                    <div className="rounded-xl border border-ember-400/20 bg-ember-400/10 p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-ember-500">
+                        Real-World Echo
+                      </p>
+                      <p className="mt-2 text-xs leading-relaxed text-ink-700">
+                        This challenge came from {activeChallenge.origin?.repo} issue #
+                        {activeChallenge.origin?.issueNumber}.
+                        {activeChallenge.origin?.pullRequest?.title
+                          ? ` The historical fix landed in PR #${activeChallenge.origin.pullRequest.number}: ${activeChallenge.origin.pullRequest.title}.`
+                          : ' Historical PR linking is best-effort in this MVP, so some imports may stop at the issue.'}
+                      </p>
+                    </div>
+                  ) : null}
                 </div>
               </div>
 

@@ -7,8 +7,10 @@ const testSuites = {
     };
 
     const runTests = async () => {
-      const button = document.querySelector('[data-testid="quick-add"]');
-      const countEl = document.querySelector('[data-testid="count"]');
+      const button = document.querySelector('[data-testid="quick-add"]') || 
+                     Array.from(document.querySelectorAll('button')).find(b => /add|inc|plus|\+/i.test(b.textContent));
+      const countEl = document.querySelector('[data-testid="count"]') || 
+                      Array.from(document.querySelectorAll('div, span, p')).find(el => /^\d+$/.test(el.textContent.trim()));
 
       if (!button || !countEl) {
         reportCase('double-increment', 'fail', 'Missing counter elements.');
@@ -53,10 +55,11 @@ const testSuites = {
         window.__debug && typeof window.__debug.fetchCount === 'number'
           ? window.__debug.fetchCount
           : 0;
-      const userEl = document.querySelector('[data-testid="user"]');
+      const userEl = document.querySelector('[data-testid="user"]') || 
+                     Array.from(document.querySelectorAll('div, span, p')).find(el => el.textContent.length > 2 && !el.textContent.includes('Status') && !el.textContent.includes('...'));
       const name = userEl ? userEl.textContent.trim() : '';
 
-      if (!name || name === 'Loading...') {
+      if (!name || name === 'Loading...' || name.includes('...')) {
         reportCase('user-loaded', 'fail', 'User name is missing.');
         window.__report({ status: 'fail', message: 'User never loaded.' });
         return;
@@ -98,7 +101,8 @@ const testSuites = {
     };
 
     const runTests = async () => {
-      const toggle = document.querySelector('[data-testid="toggle"]');
+      const toggle = document.querySelector('[data-testid="toggle"]') || 
+                     Array.from(document.querySelectorAll('button')).find(b => /mount|toggle|close|unmount/i.test(b.textContent));
       if (!toggle) {
         reportCase('interval-cleanup', 'fail', 'Toggle button not found.');
         window.__report({ status: 'fail', message: 'Toggle button not found.' });
@@ -164,6 +168,10 @@ const testSuites = {
   `,
 };
 
-export const buildTestScript = (challengeId) => {
-  return testSuites[challengeId] ?? '';
+export const buildTestScript = (challenge) => {
+  if (!challenge) {
+    return '';
+  }
+
+  return testSuites[challenge.id] ?? testSuites[challenge.templateId] ?? '';
 };

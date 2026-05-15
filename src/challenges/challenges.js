@@ -156,7 +156,7 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
 `;
 
-export const challenges = [
+export const coreChallenges = [
   {
     id: 'shadow-state',
     level: 'Junior',
@@ -303,3 +303,5 @@ export const challenges = [
 }`
   },
 ];
+
+export const challenges = coreChallenges;

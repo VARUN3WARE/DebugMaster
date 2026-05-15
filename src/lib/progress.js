@@ -21,7 +21,7 @@ export const loadProgress = () => {
       passes: parsed?.passes || {},
       history: parsed?.history || {},
     };
-  } catch (error) {
+  } catch {
     return { ...defaultProgress };
   }
 };

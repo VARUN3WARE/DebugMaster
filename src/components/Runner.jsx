@@ -153,7 +153,7 @@ const buildSandboxHtml = ({ combinedCode, testScript, title, runId }) => {
 </html>`;
 };
 
-const Runner = ({ files, entryFile, challengeId, runKey, runId, onEvent }) => {
+const Runner = ({ files, entryFile, challenge, runKey, runId, onEvent }) => {
   const combinedCode = useMemo(() => {
     const ordered = Object.keys(files || {});
     const safeEntry = entryFile && ordered.includes(entryFile) ? entryFile : ordered[0];
@@ -169,11 +169,11 @@ const Runner = ({ files, entryFile, challengeId, runKey, runId, onEvent }) => {
   const sandboxHtml = useMemo(() => {
     return buildSandboxHtml({
       combinedCode,
-      testScript: buildTestScript(challengeId),
-      title: `Preview: ${challengeId}`,
+      testScript: buildTestScript(challenge),
+      title: `Preview: ${challenge?.id ?? 'challenge'}`,
       runId,
     });
-  }, [combinedCode, challengeId, runId]);
+  }, [challenge, combinedCode, runId]);
 
   useEffect(() => {
     if (!onEvent) {

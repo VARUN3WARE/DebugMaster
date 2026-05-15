@@ -20,7 +20,7 @@ const testSuites = {
 
       window.__report({
         status: 'fail',
-        message: `Expected 2 after quick add, got ${count}.`,
+        message: 'Expected 2 after quick add, got ' + count + '.',
       });
     };
 
@@ -43,14 +43,14 @@ const testSuites = {
       if (fetchCount > 4) {
         window.__report({
           status: 'fail',
-          message: `Too many fetches detected (${fetchCount}).`,
+          message: 'Too many fetches detected (' + fetchCount + ').',
         });
         return;
       }
 
       window.__report({
         status: 'pass',
-        message: `Fetch count stable (${fetchCount}).`,
+        message: 'Fetch count stable (' + fetchCount + ').',
       });
     };
 
@@ -75,7 +75,7 @@ const testSuites = {
 
       window.__report({
         status: 'fail',
-        message: `Interval still running (${activeIntervals}).`,
+        message: 'Interval still running (' + activeIntervals + ').',
       });
     };
 

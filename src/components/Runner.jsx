@@ -132,7 +132,10 @@ const buildSandboxHtml = ({ combinedCode, testScript, title }) => {
         script.text = output;
         document.body.appendChild(script);
       } catch (error) {
-        window.__report({ status: 'fail', message: `Build error: ${error.message}` });
+        window.__report({
+          status: 'fail',
+          message: 'Build error: ' + error.message,
+        });
       }
     </script>
 

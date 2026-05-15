@@ -22,10 +22,10 @@
 	Skip this step for "Hello World" projects.
 	-->
 
-- [ ] Install Required Extensions
+- [x] Install Required Extensions (Done: no extensions specified.)
 	<!-- ONLY install extensions provided mentioned in the get_project_setup_info. Skip this step otherwise and mark as completed. -->
 
-- [ ] Compile the Project
+- [x] Compile the Project (Done: npm run build succeeded.)
 	<!--
 	Verify that all previous steps have been completed.
 	Install any missing dependencies.
@@ -33,7 +33,7 @@
 	Check for markdown files in project folder for relevant instructions on how to do this.
 	-->
 
-- [ ] Create and Run Task
+- [x] Create and Run Task (Done: no VS Code task required for this app.)
 	<!--
 	Verify that all previous steps have been completed.
 	Check https://code.visualstudio.com/docs/debugtest/tasks to determine if the project needs a task. If so, use the create_and_run_task to create and launch a task based on package.json, README.md, and project structure.
